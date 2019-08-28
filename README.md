@@ -1,7 +1,7 @@
 
 ## Project Overview
 
-This project is using ports datasets containing shape files which indicates geo-cordinates of each port near Halifax, NS and the AISData.csv file contains coordinates of visits to each port. Following are objectives of this project.
+This project is using ports datasets containing shape files which indicates geo-coordinates of each port near Halifax, NS and the AISData.csv file contains coordinates of visits to each port. Following are objectives of this project.
 
 - Finding all the vessels that visited ports in the provided shape file, and creating a buffer with an appropriate radius around the shape of each all polygons in the shapefile. Second, finding all the AIS messages (from AIS data)that intersect with these ports.
 - Showing the density (i.e., density is the number of AIS messages in a port), of each port on a map by using a colour-coded map.
