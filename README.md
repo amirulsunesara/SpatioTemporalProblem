@@ -1,14 +1,14 @@
 
 ## Project Overview
 
-This project is using ports datasets containing shape files which indicate geo-cordinates of each port near Halifax, NS and the AISData.csv file contains coordinates of visits to each port. Following are objectives of this project.
+This project is using ports datasets containing shape files which indicates geo-cordinates of each port near Halifax, NS and the AISData.csv file contains coordinates of visits to each port. Following are objectives of this project.
 
-- Finding all the vessels that visited ports in the provided shape file, and creating a buffer with an appropriate radius around the shape of each all polygons in the shapefile. Second, you are going to find all the AIS messages (from AIS data)that intersect with these ports.
+- Finding all the vessels that visited ports in the provided shape file, and creating a buffer with an appropriate radius around the shape of each all polygons in the shapefile. Second, finding all the AIS messages (from AIS data)that intersect with these ports.
 - Showing the density (i.e., density is the number of AIS messages in a port), of each port on a map by using a colour-coded map.
 - Dividing the AIS data into data frames with a one-hour interval and repeating above steps for all of the sub-dataframe and saving all generated plots in folder.
 - Creating a temporal chart for the density of messages in that selected port, where x is the time and each snapshot of the time has the density of port at a specific hour.
 - Using concept drift methods on above step and finding out if there is any drift in the data that can be detected.
-- Clustering the ports based on their message density using DBSCAN and categorize the ports based on traffic (message density).
+- Clustering the ports based on their message density using DBSCAN and categorizing the ports based on traffic (message density).
 
 
 ```python
