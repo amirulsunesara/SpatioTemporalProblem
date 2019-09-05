@@ -1,4 +1,3 @@
-
 ## Project Overview
 
 This project is using ports datasets containing shape files which indicates geo-coordinates of each port near Halifax, NS and the AISData.csv file contains coordinates of visits to each port. Following are objectives of this project.
@@ -9,7 +8,6 @@ This project is using ports datasets containing shape files which indicates geo-
 - Creating a temporal chart for the density of messages in that selected port, where x is the time and each snapshot of the time has the density of port at a specific hour.
 - Using concept drift methods on above step and finding out if there is any drift in the data that can be detected.
 - Clustering the ports based on their message density using DBSCAN and categorizing the ports based on traffic (message density).
-
 
 ```python
 #import libraries
@@ -30,26 +28,26 @@ import os
 import warnings
 ```
 
-
 ```python
 warnings.filterwarnings('ignore')
 df_AISData=pd.read_csv('AISData.csv')
 gdf_AISData = gpd.GeoDataFrame(df_AISData,
                                 crs={'init': 'epsg:4326'},
                                 geometry=[shapely.geometry.Point(xy) for xy in zip(df_AISData.x, df_AISData.y)])
-shape_Data=gpd.read_file('assignment3shapefile.shp')
+shape_Data=gpd.read_file('shapefile.shp')
 df_ports=shape_Data.set_index(['port_name'])
 ```
 
-### 1. Finding all the vessels that visited ports in the provided shapefile.  
-#### Creating a buffer with an appropriate radius around the shape of each all polygons in the shapefile. 
-In the following figure, ports are indicated by blue circle. Buffer is indicated by red circle around blue circle, and visits to ports are indicated by green color points.
+### 1. Finding all the vessels that visited ports in the provided shapefile.
 
+#### Creating a buffer with an appropriate radius around the shape of each all polygons in the shapefile.
+
+In the following figure, ports are indicated by blue circle. Buffer is indicated by red circle around blue circle, and visits to ports are indicated by green color points.
 
 ```python
 def plot_all_vessels(df_ports,gdf_AISData,fig,ax,iteration):
     #following iteration condition only run one time when function is triggered within loop
-    #this logic is used for improving performance in loop (question 3 of assignment)
+    #this logic is used for improving performance in loop (objective 3 of project)
     if(iteration==0):
         array_Centroids = []
         array_Buffers = []
@@ -64,25 +62,23 @@ def plot_all_vessels(df_ports,gdf_AISData,fig,ax,iteration):
         gpd.GeoSeries(array_Buffers).plot(ax=ax,edgecolor='red',color='white')
 
         df_ports.loc[df_ports.index.values,:].plot(ax=ax)
-    
+
     gdf_AISData.plot(ax=ax,color='g',alpha=0.2)
-    
+
     if(iteration==0):
         gpd.GeoSeries(array_Centroids).plot(ax=ax,color='yellow')
-    
+
     return ax.get_figure()
 
 fig, ax = plt.subplots(figsize=(25,25))
 fig = plot_all_vessels(df_ports,gdf_AISData,fig,ax,0)
 ```
 
-
 ![png](SpatioTemporalProblem_files/SpatioTemporalProblem_4_0.png)
 
-
 #### Finding all the AIS messages (from AIS data) that intersect with these ports using color code map
-All AIS messages that intersect with ports are highlighted with different color codes [1]. Essentially the following code look for the port coodinates and AIS message coordinates and applying join basis of that similarity. When a corresponding AIS message is found, it is plotted on graph. 
 
+All AIS messages that intersect with ports are highlighted with different color codes [1]. Essentially the following code look for the port coodinates and AIS message coordinates and applying join basis of that similarity. When a corresponding AIS message is found, it is plotted on graph.
 
 ```python
 def plot_message_intersection_with_ports(df_ports,gdf_AISData,fig,ax,iteration):
@@ -92,13 +88,13 @@ def plot_message_intersection_with_ports(df_ports,gdf_AISData,fig,ax,iteration):
                  '#7bf96c','#7bf96c','#76c48a','#76c4a2','#878787','#b05d5d','#933333','#588385','#5acbb8','#5ab1cb',
                  '#004b62','#010c1d','#8686cc','#78589c','#a01ba4','#ff70e1','#aa0086','#aa005d','#a50640','#a14e6c',
                  '#fccedf','#b44761','#47b48e','#a79444','#685b25','#28611e','#708793']
-    
+
     #following iteration condition only run one time when function is triggered within loop
     #this logic is used for improving performance in loop
     if(iteration==0):
         df_ports.loc[df_ports.index.values,:].plot(ax=ax)
         df_ports["density"] = 0
-    
+
     index=0
     for port in set(join_ais_port['index_right']):
         port_ais_data=join_ais_port.loc[join_ais_port['index_right']==port,:]
@@ -113,20 +109,15 @@ fig, ax = plt.subplots(figsize=(25,25))
 fig = plot_message_intersection_with_ports(df_ports,gdf_AISData,fig,ax,0)
 ```
 
-
 ![png](SpatioTemporalProblem_files/SpatioTemporalProblem_6_0.png)
 
+### 2. Showing the density (i.e., number of AIS messages in a port), on each port
 
-### 2. Showing the density (i.e., number of AIS messages in a port), on each port 
 A column named 'density' is added to dataframe showing number of AIS messages in one port. Following this dataframe, the figure represents color-coded map showing density of visits for each of ports. By comparing datafram and figure it can be seen that port7 has highest number of density that outweighs the total density of other ports.
-
 
 ```python
 df_ports
 ```
-
-
-
 
 <div>
 <style scoped>
@@ -141,6 +132,7 @@ df_ports
     .dataframe thead th {
         text-align: right;
     }
+
 </style>
 <table border="1" class="dataframe">
   <thead>
@@ -346,9 +338,6 @@ df_ports
 </table>
 </div>
 
-
-
-
 ```python
 def plot_message_density(df_ports,fig,ax,iteration):
     min_value = df_ports["density"].min()
@@ -362,21 +351,18 @@ def plot_message_density(df_ports,fig,ax,iteration):
     if(iteration==0):
         scalar_mappable = plt.cm.ScalarMappable(cmap='Greens', norm=plt.Normalize(vmin=min_value, vmax=max_value))
         fig.colorbar(scalar_mappable)
-    
+
     return ax.get_figure()
 
 fig, ax = plt.subplots(figsize=(25,25))
 fig = plot_message_density(df_ports,fig,ax,0)
 ```
 
-
 ![png](SpatioTemporalProblem_files/SpatioTemporalProblem_9_0.png)
 
-
-### 3. Dividing the AIS data into data frames with a one-hour interval, repeating steps mentioned in question 1 and 2 and saving figures in folders.
+### 3. Dividing the AIS data into data frames with a one-hour interval, repeating steps mentioned in Objective 1 and 2 and saving figures in folders.
 
 The data is divided into one hour interval considering date and hour. Three directories will be automatically created on project's root folder to store images. In previous part, functions are created to minimize the code, therefore these function are called here, and code is optimized to for working in loop.
-
 
 ```python
 df_date = pd.to_datetime(df_AISData.event_time,format='%Y-%m-%dT%H:%M:%S.%fZ', errors='coerce')
@@ -399,38 +385,32 @@ iteration=0
 for name,df in df_groupedby_datehour:
     gdf = gpd.GeoDataFrame(df,crs={'init':'epsg:4326'},
                              geometry=[shapely.geometry.Point(xy) for xy in zip(df.x, df.y)])
-    
-    #Repeating steps question 1:  
+
+    #Repeating steps objective 1:
     # i) calling function to plot all vessels visited the port and saving resulting figure
     # ii) calling function to find all the AIS messages that intersect with ports and saving resulting figure
     fig1 = plot_all_vessels(df_ports,gdf,fig1,ax1,iteration)
     fig1.savefig('imagesVesselsVisitPorts/'+str(name)+".png")
-    
+
     fig2 = plot_message_intersection_with_ports(df_ports,gdf,fig2,ax2,iteration)
     fig2.savefig('imagesMessageIntersection/'+str(name)+".png")
-    
-    #Repeating steps in question 2: calling function to plot color code message density and saving resulting figure 
+
+    #Repeating steps in objective 2: calling function to plot color code message density and saving resulting figure
     fig3 = plot_message_density(df_ports,fig3,ax3,iteration)
     fig3.savefig('imagesDensityColorcodeMap/'+str(name)+".png")
-    
+
     iteration=iteration+1
 ```
 
-
 ![png](SpatioTemporalProblem_files/SpatioTemporalProblem_11_0.png)
-
-
 
 ![png](SpatioTemporalProblem_files/SpatioTemporalProblem_11_1.png)
 
-
-
 ![png](SpatioTemporalProblem_files/SpatioTemporalProblem_11_2.png)
 
+### 4. Selecting a port and creating a temporal chart for the density of messages in that port.
 
-### 4.  Selecting a port and creating a temporal chart for the density of messages in that port.
-The line chart below mention the temporal chart for Fairview Cove port. On the x-axis, datetime is plotted and on y-axis densities are plotted. 
-
+The line chart below mention the temporal chart for Fairview Cove port. On the x-axis, datetime is plotted and on y-axis densities are plotted.
 
 ```python
 port_name='Fairview cove'
@@ -446,9 +426,9 @@ grouped_selected_df = df_selected_port.groupby([df_selected_date.dt.date,df_sele
 df_tmp = pd.DataFrame(columns=['density', 'datetime'])
 for name,df in grouped_selected_df:
     if(df.shape[0]>0):
-        df_tmp = df_tmp.append({'density' : df.shape[0] , 'datetime' : df.iloc[0]["event_time"]},ignore_index=True)       
+        df_tmp = df_tmp.append({'density' : df.shape[0] , 'datetime' : df.iloc[0]["event_time"]},ignore_index=True)
 
-#plotting temporal char        
+#plotting temporal char
 df_tmp["datetime"] = pd.to_datetime(df_tmp["datetime"],format='%Y-%m-%dT%H:%M:%S.%fZ', errors='coerce')
 df_tmp = df_tmp.sort_values(by='datetime')
 fig, ax = plt.subplots(figsize=(25,25))
@@ -459,30 +439,20 @@ df_tmp['density'].plot(kind='line',ax=ax)
 
 ```
 
-
-
-
     <matplotlib.axes._subplots.AxesSubplot at 0x293a99ef6d8>
-
-
-
 
 ![png](SpatioTemporalProblem_files/SpatioTemporalProblem_13_1.png)
 
+### 5. Using the concept drift methods on step 4 to find out if there is any drift in the data that can be detected.
 
-### 5. Using the concept drift methods on step 4 to find out if there is any drift in the data that can be detected. 
-
-
-I have applied four methods to detect drift in data. The PageHinkley Methods successfully detect drift at two points. It can be observed from the output below that in PageHinkley drift is detected when there is sudden hike or fall in density. In following cases, density is increasing from 6 to 43 in first case, and decreasing from 40 to 28 in second case. More than 50% increase or decrease in densities is leading to drift in data. 
+I have applied four methods to detect drift in data. The PageHinkley Methods successfully detect drift at two points. It can be observed from the output below that in PageHinkley drift is detected when there is sudden hike or fall in density. In following cases, density is increasing from 6 to 43 in first case, and decreasing from 40 to 28 in second case. More than 50% increase or decrease in densities is leading to drift in data.
 
 The parameter used in PageHinkley is threshold which is a threshold for change detection. If the observed mean is greater than this threshold then drift will be detected. Other two parameters are delta and alpha. Delta is a variable for conducting PageHinkley test and alpha variable is used to measure mean and observed value [2]. In DDM method, the parameters warning_level and out_control_level are used. If the algorithm identifies that there is increase in error then it warns user that an error may occur considering warning_level variable. The drift will detect when error cross the threshold [5].
-
-
 
 ```python
 ph = PageHinkley(threshold=60,delta=0.003, alpha=0.997)
 isDetected = False
-densities = df_tmp["density"] 
+densities = df_tmp["density"]
 for i in range(len(densities)):
     ph.add_element(densities[i])
     if ph.detected_change():
@@ -495,12 +465,9 @@ if(isDetected==False):
 
     Change detected at density: 43 and at index: 30
     Previous density: 6 and  previous index: 29
-    
+
     Change detected at density: 28 and at index: 78
     Previous density: 40 and  previous index: 77
-    
-    
-
 
 ```python
 ddm = DDM(warning_level=3.0, out_control_level=4.0)
@@ -516,8 +483,6 @@ if(isDetected==False):
 ```
 
     No drift detected
-    
-
 
 ```python
 adwin = ADWIN(delta=0.005)
@@ -532,8 +497,6 @@ if(isDetected==False):
 ```
 
     No drift detected
-    
-
 
 ```python
 eddm = EDDM()
@@ -542,15 +505,13 @@ for i in range(len(densities)):
     eddm.add_element(densities[i])
     if eddm.detected_change():
         isDetected = True
-        print('Change detected in data at Density: ' + str(densities[i]) + 'and at time: ' 
+        print('Change detected in data at Density: ' + str(densities[i]) + 'and at time: '
               + df_tmp.iloc[i]["datetime"])
 if(isDetected==False):
     print("No drift detected")
 ```
 
     No drift detected
-    
-
 
 ```python
 #this function prepares date to feed into DBScan
@@ -560,20 +521,20 @@ def pre_process_data():
     gdf_AISData = gpd.GeoDataFrame(df_AISData,
                                 crs={'init': 'epsg:4326'},
                                 geometry=[shapely.geometry.Point(xy) for xy in zip(df_AISData.x, df_AISData.y)])
-    shape_Data=gpd.read_file('assignment3shapefile.shp')
+    shape_Data=gpd.read_file('shapefile.shp')
     df_ports=shape_Data.set_index(['port_name'])
     join_aisports=gpd.sjoin(gdf_AISData,df_ports,op='within',how='inner')
     df_coord = pd.DataFrame(columns=['x', 'y'])
     df_tmp = pd.DataFrame(columns=['density', 'datetime'])
-    
+
     for port in set(join_aisports['index_right']):
         df=join_aisports.loc[join_aisports['index_right']==port,:]
         if df.shape[0]>0:
             df_coord = df_coord.append(df[['x','y']])
             df_tmp = df_tmp.append({'density' : df.shape[0] , 'datetime' : df.iloc[0]["event_time"]},ignore_index=True)
-        
+
     return df_coord,df_tmp
-    
+
 def run_dbscan(df,dim):
     X = StandardScaler().fit_transform(df)
     ds = DBSCAN(eps=0.3, min_samples=10).fit(X)
@@ -610,13 +571,13 @@ def run_dbscan(df,dim):
 ### 6. Cluster the ports based on their message density using DBSCAN and categorize the ports based on traffic (message density).
 
 I ran DBSCAN on two scenerios.
+
 1. Cluster the ports based on message densities.
 2. Cluster the ports based on coordinates that intersecting with ports while considering message densities.
 
 For first scenerio, there is only one cluster formed. In DBScan, only variable is passed that is message density. The reason of getting only cluster is that there is only feauture, which is not sufficient to generate different clusters.
 
-In second scenerio, I am passing coordinates (x and y) to DBScan. These coordinates are intersection with ports. There are four clusters formed from 26 ports data. The cluster is formed on basis of density (number of visit to each port) and how these ports are frequently visited.   
-
+In second scenerio, I am passing coordinates (x and y) to DBScan. These coordinates are intersection with ports. There are four clusters formed from 26 ports data. The cluster is formed on basis of density (number of visit to each port) and how these ports are frequently visited.
 
 ```python
 df_coord,df_tmp = pre_process_data()
@@ -625,12 +586,8 @@ run_dbscan(df_tmp[["density"]],0)
 
     Number of clusters: 1
     Number of noise points: 1
-    
-
 
 ![png](SpatioTemporalProblem_files/SpatioTemporalProblem_21_1.png)
-
-
 
 ```python
 run_dbscan(df_coord[['x','y']][0:20000],1)
@@ -638,16 +595,13 @@ run_dbscan(df_coord[['x','y']][0:20000],1)
 
     Number of clusters: 4
     Number of noise points: 30
-    
-
 
 ![png](SpatioTemporalProblem_files/SpatioTemporalProblem_22_1.png)
-
 
 ### References:
 
 [1] “HTML Color Codes,” HTML Color Codes, 03-Sep-2015. [Online]. Available: https://htmlcolorcodes.com/. \
-[2] “skmultiflow.drift_detection.page_hinkley,” scikit. [Online]. Available: https://scikit-multiflow.github.io  /scikit-multiflow/_autosummary/skmultiflow.drift_detection.page_hinkley.html. \
+[2] “skmultiflow.drift_detection.page_hinkley,” scikit. [Online]. Available: https://scikit-multiflow.github.io /scikit-multiflow/\_autosummary/skmultiflow.drift_detection.page_hinkley.html. \
 [3] “Demo of DBSCAN clustering algorithm,” scikit. [Online]. Available: https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html#sphx-glr-auto-examples-cluster-plot-dbscan-py. \
 [4] “skmultiflow.drift_detection.adwin,” scikit. [Online]. Available: https://scikit-multiflow.github.io/scikit-multiflow/_autosummary/skmultiflow.drift_detection.adwin.html. \
 [5] “skmultiflow.drift_detection.ddm,” scikit. [Online]. Available: https://scikit-multiflow.github.io/scikit-multiflow/_autosummary/skmultiflow.drift_detection.ddm.html. \
@@ -656,22 +610,6 @@ run_dbscan(df_coord[['x','y']][0:20000],1)
 [8] “pandas.to_datetime,” pandas.to_datetime - pandas 0.25.0 documentation. [Online]. Available: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.to_datetime.html. \
 [9] T. Tak, “matplotlib.cm.ScalarMappable Example,” Program Talk. [Online]. Available: https://programtalk.com/python-examples/matplotlib.cm.ScalarMappable/. \
 [10] D. School, “When should I use a ‘groupby’ in pandas?,” YouTube, 19-May-2016. [Online]. Available: https://www.youtube.com/watch?v=qy0fDqoMJx8.
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ```python
 
